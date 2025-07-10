@@ -20,13 +20,23 @@
   <div class="w-full max-w-md" id="auth-section">
     <h1 class="text-2xl font-bold text-center mb-4">💸 Budget Login</h1>
     <form id="login-form" class="space-y-4">
-      <input type="email" id="email" placeholder="Email" class="w-full p-2 rounded-xl bg-gray-800 border border-gray-600 text-white" required />
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 rounded-xl bg-gray-800 border border-gray-600 text-white" required />
-      <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white py-2 rounded-xl font-semibold">Login</button>
+      <input
+        type="password"
+        id="password"
+        placeholder="Enter Password"
+        class="w-full p-2 rounded-xl bg-gray-800 border border-gray-600 text-white"
+        required
+      />
+      <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white py-2 rounded-xl font-semibold">
+        Login
+      </button>
     </form>
   </div>
 
-  <div class="hidden w-full max-w-6xl bg-black rounded-2xl shadow-lg p-6 border border-gray-700 gap-10" id="app-section">
+  <div
+    class="hidden w-full max-w-6xl bg-black rounded-2xl shadow-lg p-6 border border-gray-700 gap-10"
+    id="app-section"
+  >
     <div class="flex flex-col md:flex-row gap-10">
       <!-- Left side -->
       <div class="flex-1 max-w-md">
@@ -36,9 +46,24 @@
         </div>
 
         <form id="transaction-form" class="space-y-4">
-          <input type="text" id="desc" placeholder="Description" class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white" required />
-          <input type="number" id="amount" placeholder="Amount" class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white" required />
-          <select id="category" class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white">
+          <input
+            type="text"
+            id="desc"
+            placeholder="Description"
+            class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white"
+            required
+          />
+          <input
+            type="number"
+            id="amount"
+            placeholder="Amount"
+            class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white"
+            required
+          />
+          <select
+            id="category"
+            class="w-full p-2 border border-gray-600 rounded-xl bg-gray-800 text-white"
+          >
             <option value="income">Income</option>
             <option value="short term savings">Short Term Savings</option>
             <option value="long term savings">Long Term Savings</option>
@@ -48,13 +73,27 @@
             <option value="entertainment">Entertainment</option>
             <option value="other">Other</option>
           </select>
-          <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white py-2 rounded-xl font-semibold">Add</button>
-          <button id="reset-btn" type="button" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-semibold">Reset All</button>
+          <button
+            type="submit"
+            class="w-full bg-green-800 hover:bg-green-900 text-white py-2 rounded-xl font-semibold"
+          >
+            Add
+          </button>
+          <button
+            id="reset-btn"
+            type="button"
+            class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-semibold"
+          >
+            Reset All
+          </button>
         </form>
 
         <div class="mt-8">
           <h2 class="text-xl font-bold mb-2">Balance: <span id="balance">$0</span></h2>
-          <ul id="transaction-list" class="divide-y divide-gray-700 max-h-[400px] overflow-y-auto"></ul>
+          <ul
+            id="transaction-list"
+            class="divide-y divide-gray-700 max-h-[400px] overflow-y-auto"
+          ></ul>
         </div>
       </div>
 
@@ -66,6 +105,7 @@
   </div>
 
   <script>
+    // your firebase config here
     const firebaseConfig = {
       apiKey: "AIzaSyA0eHZ8ftj6nnm63yYIlvruDoAHyWE9zs4",
       authDomain: "budget-32901.firebaseapp.com",
@@ -73,51 +113,52 @@
       projectId: "budget-32901",
       storageBucket: "budget-32901.firebasestorage.app",
       messagingSenderId: "569256663851",
-      appId: "1:569256663851:web:bb32391497e351ccc7036e"
+      appId: "1:569256663851:web:bb32391497e351ccc7036e",
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const loginForm = document.getElementById('login-form');
-    const appSection = document.getElementById('app-section');
-    const authSection = document.getElementById('auth-section');
-    const logoutBtn = document.getElementById('logout');
-    const form = document.getElementById('transaction-form');
-    const descInput = document.getElementById('desc');
-    const amountInput = document.getElementById('amount');
-    const categoryInput = document.getElementById('category');
-    const transactionList = document.getElementById('transaction-list');
-    const balanceDisplay = document.getElementById('balance');
-    const resetBtn = document.getElementById('reset-btn');
-    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const loginForm = document.getElementById("login-form");
+    const appSection = document.getElementById("app-section");
+    const authSection = document.getElementById("auth-section");
+    const logoutBtn = document.getElementById("logout");
+    const form = document.getElementById("transaction-form");
+    const descInput = document.getElementById("desc");
+    const amountInput = document.getElementById("amount");
+    const categoryInput = document.getElementById("category");
+    const transactionList = document.getElementById("transaction-list");
+    const balanceDisplay = document.getElementById("balance");
+    const resetBtn = document.getElementById("reset-btn");
+    const ctx = document.getElementById("categoryChart").getContext("2d");
     let myPieChart = null;
     let transactions = [];
+    const hardcodedEmail = "jarvis@winter.com";
     let uid = null;
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, password)
+      const password = document.getElementById("password").value;
+      auth
+        .signInWithEmailAndPassword(hardcodedEmail, password)
         .then(() => loginForm.reset())
-        .catch(err => alert(err.message));
+        .catch((err) => alert(err.message));
     });
 
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener("click", () => {
       auth.signOut();
     });
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged((user) => {
       if (user) {
         uid = user.uid;
-        authSection.classList.add('hidden');
-        appSection.classList.remove('hidden');
+        authSection.classList.add("hidden");
+        appSection.classList.remove("hidden");
         loadTransactions();
       } else {
-        appSection.classList.add('hidden');
-        authSection.classList.remove('hidden');
+        appSection.classList.add("hidden");
+        authSection.classList.remove("hidden");
         transactions = [];
         updateUI();
       }
@@ -128,30 +169,33 @@
     }
 
     function loadTransactions() {
-      db.ref(`users/${uid}/transactions`).on('value', snapshot => {
+      db.ref(`users/${uid}/transactions`).on("value", (snapshot) => {
         transactions = snapshot.val() || [];
         updateUI();
       });
     }
 
     function updateUI() {
-      transactionList.innerHTML = '';
+      transactionList.innerHTML = "";
       let balance = 0;
 
       transactions.forEach((t, i) => {
-        const li = document.createElement('li');
-        li.className = 'py-2 flex justify-between items-center';
+        const li = document.createElement("li");
+        li.className = "py-2 flex justify-between items-center";
         li.innerHTML = `
           <div>
             <p class="font-medium">${t.desc}</p>
             <p class="text-sm text-gray-400">${t.category}</p>
           </div>
           <div class="flex items-center space-x-2">
-            <span class="${t.amount < 0 ? 'text-red-500' : 'text-green-500'} font-semibold">
-              ${t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
+            <span class="${
+              t.amount < 0 ? "text-red-500" : "text-gray-400"
+            } font-semibold">
+              ${t.amount < 0 ? "-" : "+"}${Math.abs(t.amount)}
             </span>
             <button onclick="deleteTransaction(${i})" class="text-gray-400 hover:text-red-500">&times;</button>
-          </div>`;
+          </div>
+        `;
         transactionList.appendChild(li);
         balance += t.amount;
       });
@@ -165,7 +209,7 @@
       saveTransactions();
     }
 
-    form.addEventListener('submit', e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const desc = descInput.value.trim();
       const amount = parseFloat(amountInput.value);
@@ -176,8 +220,8 @@
       saveTransactions();
     });
 
-    resetBtn.addEventListener('click', () => {
-      if (confirm('Reset all transactions?')) {
+    resetBtn.addEventListener("click", () => {
+      if (confirm("Reset all transactions?")) {
         transactions = [];
         saveTransactions();
       }
@@ -185,7 +229,7 @@
 
     function updateChart() {
       const categoryTotals = {};
-      transactions.forEach(t => {
+      transactions.forEach((t) => {
         if (!categoryTotals[t.category]) categoryTotals[t.category] = 0;
         categoryTotals[t.category] += t.amount;
       });
@@ -195,19 +239,29 @@
 
       if (myPieChart) myPieChart.destroy();
       myPieChart = new Chart(ctx, {
-        type: 'pie',
+        type: "pie",
         data: {
           labels,
-          datasets: [{
-            data,
-            backgroundColor: ['#4B5563', '#6B7280', '#9CA3AF', '#F87171', '#FBBF24', '#34D399', '#60A5FA']
-          }]
+          datasets: [
+            {
+              data,
+              backgroundColor: [
+                "#4B5563",
+                "#6B7280",
+                "#9CA3AF",
+                "#F87171",
+                "#FBBF24",
+                "#34D399",
+                "#60A5FA",
+              ],
+            },
+          ],
         },
         options: {
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#fff' } }
-          }
-        }
+            legend: { position: "bottom", labels: { color: "#fff" } },
+          },
+        },
       });
     }
   </script>

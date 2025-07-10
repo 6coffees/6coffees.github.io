@@ -6,6 +6,8 @@
   <title>Budget</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -43,6 +45,7 @@
           </select>
         </div>
         <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white py-2 rounded-xl font-semibold">Add</button>
+        <button id="reset-btn" type="button" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-semibold mt-2">Reset All</button>
       </form>
 
       <div class="mt-8">
@@ -58,16 +61,43 @@
   </div>
 
   <script>
+    // your firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0eHZ8ftj6nnm63yYIlvruDoAHyWE9zs4",
+      authDomain: "budget-32901.firebaseapp.com",
+      databaseURL: "https://budget-32901-default-rtdb.firebaseio.com",
+      projectId: "budget-32901",
+      storageBucket: "budget-32901.firebasestorage.app",
+      messagingSenderId: "569256663851",
+      appId: "1:569256663851:web:bb32391497e351ccc7036e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const form = document.getElementById('transaction-form');
     const descInput = document.getElementById('desc');
     const amountInput = document.getElementById('amount');
     const categoryInput = document.getElementById('category');
     const transactionList = document.getElementById('transaction-list');
     const balanceDisplay = document.getElementById('balance');
+    const resetBtn = document.getElementById('reset-btn');
     const ctx = document.getElementById('categoryChart').getContext('2d');
     let myPieChart = null;
 
-    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    let transactions = [];
+
+    function saveTransactions() {
+      db.ref('users/defaultUser/transactions').set(transactions);
+    }
+
+    function loadTransactions() {
+      db.ref('users/defaultUser/transactions').on('value', snapshot => {
+        const data = snapshot.val();
+        transactions = data || [];
+        updateUI();
+      });
+    }
 
     function updateUI() {
       transactionList.innerHTML = '';
@@ -93,16 +123,15 @@
       });
 
       balanceDisplay.textContent = `$${balance.toFixed(2)}`;
-      localStorage.setItem('transactions', JSON.stringify(transactions));
       updateChart();
     }
 
     function deleteTransaction(index) {
       transactions.splice(index, 1);
-      updateUI();
+      saveTransactions();
     }
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', e => {
       e.preventDefault();
 
       const desc = descInput.value.trim();
@@ -113,7 +142,14 @@
 
       transactions.push({ desc, amount, category });
       form.reset();
-      updateUI();
+      saveTransactions();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset all transactions?')) {
+        transactions = [];
+        saveTransactions();
+      }
     });
 
     function updateChart() {
@@ -135,12 +171,8 @@
           datasets: [{
             data,
             backgroundColor: [
-              '#228B22', // forest green
-              '#2E8B57',
-              '#006400',
-              '#32CD32',
-              '#3CB371',
-              '#008000'
+              '#4B5563', '#6B7280', '#9CA3AF',
+              '#F87171', '#FBBF24', '#34D399', '#60A5FA'
             ]
           }]
         },
@@ -153,7 +185,7 @@
       });
     }
 
-    updateUI();
+    loadTransactions();
   </script>
 </body>
 </html>

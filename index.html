@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cocktail log</title>
+  <title>add cocktail</title>
   <style>
     :root {
       --bg: #0b0b0b;
@@ -42,14 +42,8 @@
     h1 {
       font-size: 22px;
       font-weight: 500;
-      margin: 0 0 16px;
+      margin: 0 0 24px;
       letter-spacing: 0.02em;
-    }
-
-    h2 {
-      font-size: 16px;
-      font-weight: 500;
-      margin: 0 0 8px;
     }
 
     label {
@@ -62,7 +56,7 @@
     input, textarea, select {
       width: 100%;
       margin-top: 6px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       padding: 10px;
       background: var(--panel);
       color: var(--text);
@@ -76,40 +70,13 @@
       background: var(--text);
       color: var(--bg);
       border: none;
-      padding: 10px 16px;
+      padding: 12px 18px;
       font-size: 13px;
       letter-spacing: 0.05em;
       cursor: pointer;
     }
 
     button:hover { opacity: 0.9 }
-
-    .card {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .meta {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .tag {
-      border: 1px solid var(--border);
-      padding: 4px 8px;
-      font-size: 11px;
-      color: var(--muted);
-    }
 
     @media (min-width: 700px) {
       body { max-width: 720px; margin: auto }
@@ -118,45 +85,37 @@
 </head>
 <body>
   <nav>
-    <a href="#add">add</a>
-    <a href="#browse">browse</a>
+    <a href="index.html">add</a>
+    <a href="browse.html">browse</a>
   </nav>
 
-  <section id="add">
-    <h1>add cocktail</h1>
+  <h1>add cocktail</h1>
 
-    <label>name</label>
-    <input id="name" />
+  <label>name</label>
+  <input id="name" />
 
-    <label>recipe</label>
-    <textarea id="recipe"></textarea>
+  <label>recipe</label>
+  <textarea id="recipe"></textarea>
 
-    <label>method</label>
-    <select id="method">
-      <option value="shaken">shaken</option>
-      <option value="stirred">stirred</option>
-      <option value="built">built</option>
-      <option value="blended">blended</option>
-      <option value="carbonated">carbonated</option>
-    </select>
+  <label>method</label>
+  <select id="method">
+    <option value="shaken">shaken</option>
+    <option value="stirred">stirred</option>
+    <option value="built">built</option>
+    <option value="blended">blended</option>
+    <option value="carbonated">carbonated</option>
+  </select>
 
-    <label>glassware</label>
-    <input id="glass" />
+  <label>glassware</label>
+  <input id="glass" />
 
-    <label>garnish</label>
-    <input id="garnish" />
+  <label>garnish</label>
+  <input id="garnish" />
 
-    <label>flavour profile (comma separated)</label>
-    <input id="flavour" placeholder="e.g. bitter, citrus, tropical, herbal" />
+  <label>flavour profile (comma separated)</label>
+  <input id="flavour" placeholder="bitter, citrus, herbal" />
 
-    <button onclick="saveDrink()">save</button>
-  </section>
-
-  <section id="browse" style="margin-top:48px">
-    <h1>browse</h1>
-    <input id="search" placeholder="search name or flavour" oninput="render()" />
-    <div id="list"></div>
-  </section>
+  <button onclick="saveDrink()">save cocktail</button>
 
   <script>
     const key = 'cocktails'
@@ -167,14 +126,19 @@
 
     function saveDrink() {
       const drink = {
-        name: document.getElementById('name').value,
-        recipe: document.getElementById('recipe').value,
+        name: document.getElementById('name').value.trim(),
+        recipe: document.getElementById('recipe').value.trim(),
         method: document.getElementById('method').value,
-        glass: document.getElementById('glass').value,
-        garnish: document.getElementById('garnish').value,
-        flavour: document.getElementById('flavour').value.split(',').map(f => f.trim().toLowerCase()),
+        glass: document.getElementById('glass').value.trim(),
+        garnish: document.getElementById('garnish').value.trim(),
+        flavour: document.getElementById('flavour').value
+          .split(',')
+          .map(f => f.trim().toLowerCase())
+          .filter(Boolean),
         date: new Date().toISOString()
       }
+
+      if (!drink.name) return alert('name required')
 
       const drinks = getDrinks()
       drinks.push(drink)
@@ -186,39 +150,9 @@
       document.getElementById('glass').value = ''
       document.getElementById('garnish').value = ''
       document.getElementById('flavour').value = ''
-      render()
-      location.hash = '#browse'
+
+      alert('saved')
     }
-
-    function render() {
-      const q = search.value?.toLowerCase() || ''
-      const list = document.getElementById('list')
-      list.innerHTML = ''
-
-      getDrinks()
-        .filter(d =>
-          d.name.toLowerCase().includes(q) ||
-          d.flavour.join(' ').includes(q)
-        )
-        .reverse()
-        .forEach(d => {
-          const div = document.createElement('div')
-          div.className = 'card'
-          div.innerHTML = `
-            <div class="meta">${new Date(d.date).toLocaleDateString()}</div>
-            <h2>${d.name}</h2>
-            <div class="meta">${d.glass} · ${d.garnish}</div>
-            <strong>recipe</strong><br>${d.recipe}<br><br>
-            <strong>method</strong><br>${d.method}
-            <div class="tags">
-              ${d.flavour.map(f => `<span class='tag'>${f}</span>`).join('')}
-            </div>
-          `
-          list.appendChild(div)
-        })
-    }
-
-    render()
   </script>
 </body>
 </html>

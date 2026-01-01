@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cocktail log</title>
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --panel: #141414;
+      --border: #262626;
+      --text: #f5f5f5;
+      --muted: #a1a1a1;
+    }
+
+    * { box-sizing: border-box }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      line-height: 1.5;
+    }
+
+    nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    nav a:hover { color: var(--text) }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin: 0 0 16px;
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0 0 8px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      margin-top: 6px;
+      margin-bottom: 18px;
+      padding: 10px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    textarea { resize: vertical }
+
+    button {
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      padding: 10px 16px;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+
+    button:hover { opacity: 0.9 }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    @media (min-width: 700px) {
+      body { max-width: 720px; margin: auto }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="#add">add</a>
+    <a href="#browse">browse</a>
+  </nav>
+
+  <section id="add">
+    <h1>add cocktail</h1>
+
+    <label>name</label>
+    <input id="name" />
+
+    <label>recipe</label>
+    <textarea id="recipe"></textarea>
+
+    <label>method</label>
+    <select id="method">
+      <option value="shaken">shaken</option>
+      <option value="stirred">stirred</option>
+      <option value="built">built</option>
+      <option value="blended">blended</option>
+      <option value="carbonated">carbonated</option>
+    </select>
+
+    <label>glassware</label>
+    <input id="glass" />
+
+    <label>garnish</label>
+    <input id="garnish" />
+
+    <label>flavour profile (comma separated)</label>
+    <input id="flavour" placeholder="e.g. bitter, citrus, tropical, herbal" />
+
+    <button onclick="saveDrink()">save</button>
+  </section>
+
+  <section id="browse" style="margin-top:48px">
+    <h1>browse</h1>
+    <input id="search" placeholder="search name or flavour" oninput="render()" />
+    <div id="list"></div>
+  </section>
+
+  <script>
+    const key = 'cocktails'
+
+    function getDrinks() {
+      return JSON.parse(localStorage.getItem(key) || '[]')
+    }
+
+    function saveDrink() {
+      const drink = {
+        name: document.getElementById('name').value,
+        recipe: document.getElementById('recipe').value,
+        method: document.getElementById('method').value,
+        glass: document.getElementById('glass').value,
+        garnish: document.getElementById('garnish').value,
+        flavour: document.getElementById('flavour').value.split(',').map(f => f.trim().toLowerCase()),
+        date: new Date().toISOString()
+      }
+
+      const drinks = getDrinks()
+      drinks.push(drink)
+      localStorage.setItem(key, JSON.stringify(drinks))
+
+      document.getElementById('name').value = ''
+      document.getElementById('recipe').value = ''
+      document.getElementById('method').value = 'shaken'
+      document.getElementById('glass').value = ''
+      document.getElementById('garnish').value = ''
+      document.getElementById('flavour').value = ''
+      render()
+      location.hash = '#browse'
+    }
+
+    function render() {
+      const q = search.value?.toLowerCase() || ''
+      const list = document.getElementById('list')
+      list.innerHTML = ''
+
+      getDrinks()
+        .filter(d =>
+          d.name.toLowerCase().includes(q) ||
+          d.flavour.join(' ').includes(q)
+        )
+        .reverse()
+        .forEach(d => {
+          const div = document.createElement('div')
+          div.className = 'card'
+          div.innerHTML = `
+            <div class="meta">${new Date(d.date).toLocaleDateString()}</div>
+            <h2>${d.name}</h2>
+            <div class="meta">${d.glass} · ${d.garnish}</div>
+            <strong>recipe</strong><br>${d.recipe}<br><br>
+            <strong>method</strong><br>${d.method}
+            <div class="tags">
+              ${d.flavour.map(f => `<span class='tag'>${f}</span>`).join('')}
+            </div>
+          `
+          list.appendChild(div)
+        })
+    }
+
+    render()
+  </script>
+</body>
+</html>

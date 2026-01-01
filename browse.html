@@ -5,90 +5,189 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>browse cocktails</title>
 <style>
-:root {
-  --bg: #0b0b0b;
-  --panel: #141414;
-  --border: #262626;
-  --text: #f5f5f5;
-  --muted: #a1a1a1;
-  --highlight: #ffcc00;
+:root{
+  --bg:#0b0b0b; --panel:#141414; --border:#262626; --text:#f5f5f5; --muted:#a1a1a1; --highlight:#ffcc00;
 }
-* { box-sizing: border-box }
-body { margin:0;padding:24px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif }
-nav { display:flex; gap:16px; margin-bottom:32px }
-nav a { color:var(--muted); text-decoration:none; font-size:14px }
-nav a:hover { color:var(--text) }
-h1{font-size:22px;font-weight:500;margin-bottom:16px}
-input { width:100%; margin-bottom:24px; padding:10px; background:var(--panel); color:var(--text); border:1px solid var(--border); font-size:14px }
-.card { border:1px solid var(--border); background:var(--panel); padding:16px; margin-bottom:16px; border-radius:6px }
-h2{margin:0 0 8px;font-size:16px;font-weight:500}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;padding:16px;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
+nav{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+nav a{color:var(--muted);text-decoration:none;font-size:14px}
+nav a:hover{color:var(--text)}
+h1{font-size:22px;margin-bottom:12px}
+input,select,button{padding:10px;margin-bottom:12px;width:100%;border-radius:4px;background:var(--panel);color:var(--text);border:1px solid var(--border);font-size:14px}
+button{cursor:pointer;border:none;background:var(--text);color:var(--bg);font-weight:600}
+button:hover{opacity:0.9}
+.card{border:1px solid var(--border);background:var(--panel);padding:12px;margin-bottom:12px;border-radius:6px;transition:transform 0.2s ease,opacity 0.2s ease,max-height 0.3s ease,box-shadow 0.2s ease;}
+.card.expanded{box-shadow:0 4px 12px rgba(255,204,0,0.3);transform:scale(1.01);}
+h2{margin:0 0 6px;font-size:16px}
 .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.tag{border:1px solid var(--border);padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{border:1px solid var(--border);padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer;border-radius:4px;user-select:none;transition:transform 0.15s ease,background 0.15s ease,color 0.15s ease;}
 .tag:hover{color:var(--text)}
+.tag:active{transform:scale(1.2);background:var(--highlight);color:#000}
+.active-filter{background:var(--highlight);color:#000}
 mark{background:var(--highlight);color:#000;font-weight:600}
+.flex{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.collapsible{cursor:pointer}
+.content{display:none;margin-top:6px;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease}
 </style>
 </head>
 <body>
 <nav>
-  <a href="index.html">add</a>
-  <a href="browse.html">browse</a>
+<a href="index.html">add</a>
+<a href="browse.html">browse</a>
 </nav>
 
 <h1>browse cocktails</h1>
-<input id="search" placeholder="search name, recipe, ingredient, flavour, method, glass, garnish, ice..." />
+
+<div class="flex">
+<input id="search" placeholder="search everything..." />
+<select id="sort">
+  <option value="newest">sort: newest</option>
+  <option value="alphabetical">alphabetical</option>
+  <option value="alcohol">alcohol type</option>
+  <option value="favourite">favourites first</option>
+</select>
+<button onclick="exportJSON()">export JSON</button>
+<button onclick="document.getElementById('importFile').click()">import JSON</button>
+<input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
+</div>
+
+<div id="activeFilters" class="flex"></div>
 <div id="list"></div>
 
 <script>
-const key = 'cocktails'
+const key='cocktails'
+let activeFilters=[]
+let drinks=getDrinks()
 
-function getDrinks() {
-  return JSON.parse(localStorage.getItem(key)||'[]')
-}
-
-function highlight(text, term){
-  if(!term) return text
-  const regex = new RegExp(`(${term})`, 'gi')
-  return text.replace(regex, '<mark>$1</mark>')
-}
+function getDrinks(){return JSON.parse(localStorage.getItem(key)||'[]')}
+function highlight(text,term){if(!term) return text;const regex=new RegExp(`(${term})`,'gi');return text.replace(regex,'<mark>$1</mark>')}
 
 function render(filter=''){
-  const q = filter.toLowerCase()
-  const list = document.getElementById('list')
-  list.innerHTML = ''
-  const drinks = getDrinks()
-    .filter(d=>[d.name,d.recipe,d.method,d.glass,d.garnish,d.ice,...d.flavour,...(d.ingredients||[])]
-      .some(f=>f.toLowerCase().includes(q)))
-    .reverse()
-  if(!drinks.length){ list.innerHTML='<p style="color:var(--muted)">no drinks found</p>'; return }
-  drinks.forEach(d=>{
-    const div = document.createElement('div')
+  const q=filter.toLowerCase()
+  const sort=document.getElementById('sort').value
+  drinks=getDrinks()
+  let filtered=drinks.filter(d=>{
+    const fields=[d.name,d.recipe,d.method,d.glass,d.garnish,d.ice,d.alcohol,...d.flavour,...(d.ingredients||[])]
+    const searchMatch=fields.some(f=>f.toLowerCase().includes(q))
+    const filtersMatch=activeFilters.every(filt=>fields.some(f=>f.toLowerCase()===filt.toLowerCase()))
+    return searchMatch && filtersMatch
+  })
+
+  if(sort==='alphabetical') filtered.sort((a,b)=>a.name.localeCompare(b.name))
+  else if(sort==='alcohol') filtered.sort((a,b)=>a.alcohol.localeCompare(b.alcohol))
+  else if(sort==='favourite') filtered.sort((a,b)=>b.favourite-a.favourite)
+  else filtered.sort((a,b)=>new Date(b.date)-new Date(a.date))
+
+  const list=document.getElementById('list')
+  list.innerHTML=''
+  if(!filtered.length){list.innerHTML='<p style="color:var(--muted)">no drinks found</p>'; return}
+
+  filtered.forEach(d=>{
+    const div=document.createElement('div')
     div.className='card'
     div.innerHTML=`
       <div class="meta">${new Date(d.date).toLocaleDateString()}</div>
-      <h2>${highlight(d.name,q)}</h2>
-      <div class="meta">${highlight(d.method,q)} · ${highlight(d.glass,q)} · ${highlight(d.garnish,q)} · ${highlight(d.ice,q)}</div>
-      <strong>ingredients</strong><br>${highlight(d.ingredients.join(', '),q)}
-      <br><strong>recipe</strong><br>${highlight(d.recipe,q)}
-      <div class="tags">
-        ${d.flavour.map(f=>`<span class="tag" onclick="setFilter('${f}')">${highlight(f,q)}</span>`).join('')}
-        <span class="tag" onclick="setFilter('${d.method}')">${d.method}</span>
-        <span class="tag" onclick="setFilter('${d.glass}')">${d.glass}</span>
-        ${d.garnish?`<span class="tag" onclick="setFilter('${d.garnish}')">${d.garnish}</span>`:''}
-        <span class="tag" onclick="setFilter('${d.ice}')">${d.ice}</span>
-        ${d.ingredients.map(i=>`<span class="tag" onclick="setFilter('${i}')">${i}</span>`).join('')}
+      <h2 class="collapsible">${highlight(d.name,q)}${d.favourite?' ⭐':''}</h2>
+      <div class="content">
+        <div class="meta">${highlight(d.method,q)} · ${highlight(d.glass,q)} · ${highlight(d.garnish||'',q)} · ${highlight(d.ice,q)} · ${highlight(d.alcohol,q)}</div>
+        <strong>ingredients</strong><br>${highlight(d.ingredients.join(', '),q)}<br>
+        <strong>recipe</strong><br>${highlight(d.recipe,q)}
+        <div class="tags">
+          ${d.flavour.map(f=>`<span class="tag" onclick="toggleFilter('${f}', this)">${highlight(f,q)}</span>`).join('')}
+          <span class="tag" onclick="toggleFilter('${d.method}', this)">${d.method}</span>
+          <span class="tag" onclick="toggleFilter('${d.glass}', this)">${d.glass}</span>
+          ${d.garnish?`<span class="tag" onclick="toggleFilter('${d.garnish}', this)">${d.garnish}</span>`:''}
+          <span class="tag" onclick="toggleFilter('${d.ice}', this)">${d.ice}</span>
+          <span class="tag" onclick="toggleFilter('${d.alcohol}', this)">${d.alcohol}</span>
+          ${d.ingredients.map(i=>`<span class="tag" onclick="toggleFilter('${i}', this)">${i}</span>`).join('')}
+        </div>
       </div>
     `
+    const coll=div.querySelector('.collapsible')
+    const content=div.querySelector('.content')
+    coll.addEventListener('click',()=>{
+      const expanded=content.style.display==='block'
+      content.style.display=expanded?'none':'block'
+      div.classList.toggle('expanded',!expanded)
+      if(!expanded){content.style.maxHeight=content.scrollHeight+'px'}
+      else{content.style.maxHeight=null}
+    })
+
+    // swipe gesture
+    let startX=0
+    div.addEventListener('touchstart',e=>{startX=e.touches[0].clientX})
+    div.addEventListener('touchend',e=>{
+      let endX=e.changedTouches[0].clientX
+      if(startX-endX>40){content.style.display='block';div.classList.add('expanded');content.style.maxHeight=content.scrollHeight+'px'}
+      else if(endX-startX>40){content.style.display='none';div.classList.remove('expanded');content.style.maxHeight=null}
+    })
+
     list.appendChild(div)
+  })
+  renderActiveFilters()
+}
+
+function toggleFilter(term, span){
+  // pop animation
+  if(span){
+    span.style.transform='scale(1.2)'
+    span.style.transition='transform 0.15s ease'
+    setTimeout(()=>span.style.transform='scale(1)',150)
+  }
+
+  const idx=activeFilters.indexOf(term)
+  if(idx>-1) activeFilters.splice(idx,1)
+  else activeFilters.push(term)
+  render(document.getElementById('search').value)
+}
+
+function renderActiveFilters(){
+  const container=document.getElementById('activeFilters')
+  container.innerHTML=''
+  activeFilters.forEach(f=>{
+    const span=document.createElement('span')
+    span.className='tag active-filter'
+    span.textContent=f
+    span.onclick=()=>toggleFilter(f, span)
+    container.appendChild(span)
   })
 }
 
-function setFilter(term){
-  document.getElementById('search').value=term
-  render(term)
+document.getElementById('search').addEventListener('input',e=>render(e.target.value))
+document.getElementById('sort').addEventListener('change',()=>render(document.getElementById('search').value))
+
+function exportJSON(){
+  const data=JSON.stringify(getDrinks(),null,2)
+  const blob=new Blob([data],{type:'application/json'})
+  const url=URL.createObjectURL(blob)
+  const a=document.createElement('a')
+  a.href=url
+  a.download='cocktails.json'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
-document.getElementById('search').addEventListener('input', e=>render(e.target.value))
+function importJSON(e){
+  const file=e.target.files[0]
+  if(!file) return
+  const reader=new FileReader()
+  reader.onload=function(evt){
+    try{
+      const imported=JSON.parse(evt.target.result)
+      if(Array.isArray(imported)){
+        const existing=getDrinks()
+        const merged=[...existing,...imported]
+        localStorage.setItem(key,JSON.stringify(merged))
+        alert('imported successfully')
+        render()
+      } else alert('invalid JSON')
+    } catch(err){alert('invalid JSON')}
+  }
+  reader.readAsText(file)
+}
+
 render()
 </script>
 </body>

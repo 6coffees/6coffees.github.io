@@ -59,7 +59,7 @@
       text-transform: uppercase;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       margin-top: 6px;
       margin-bottom: 18px;
@@ -132,7 +132,13 @@
     <textarea id="recipe"></textarea>
 
     <label>method</label>
-    <textarea id="method"></textarea>
+    <select id="method">
+      <option value="shaken">shaken</option>
+      <option value="stirred">stirred</option>
+      <option value="built">built</option>
+      <option value="blended">blended</option>
+      <option value="carbonated">carbonated</option>
+    </select>
 
     <label>glassware</label>
     <input id="glass" />
@@ -161,12 +167,12 @@
 
     function saveDrink() {
       const drink = {
-        name: name.value,
-        recipe: recipe.value,
-        method: method.value,
-        glass: glass.value,
-        garnish: garnish.value,
-        flavour: flavour.value.split(',').map(f => f.trim().toLowerCase()),
+        name: document.getElementById('name').value,
+        recipe: document.getElementById('recipe').value,
+        method: document.getElementById('method').value,
+        glass: document.getElementById('glass').value,
+        garnish: document.getElementById('garnish').value,
+        flavour: document.getElementById('flavour').value.split(',').map(f => f.trim().toLowerCase()),
         date: new Date().toISOString()
       }
 
@@ -174,7 +180,12 @@
       drinks.push(drink)
       localStorage.setItem(key, JSON.stringify(drinks))
 
-      name.value = recipe.value = method.value = glass.value = garnish.value = flavour.value = ''
+      document.getElementById('name').value = ''
+      document.getElementById('recipe').value = ''
+      document.getElementById('method').value = 'shaken'
+      document.getElementById('glass').value = ''
+      document.getElementById('garnish').value = ''
+      document.getElementById('flavour').value = ''
       render()
       location.hash = '#browse'
     }

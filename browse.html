@@ -36,7 +36,7 @@ mark{background:var(--highlight);color:#000;font-weight:600}
 </nav>
 
 <h1>browse cocktails</h1>
-<input id="search" placeholder="search name, ingredient, flavour, method, glass, garnish..." />
+<input id="search" placeholder="search name, recipe, ingredient, flavour, method, glass, garnish, ice..." />
 <div id="list"></div>
 
 <script>
@@ -46,7 +46,6 @@ function getDrinks() {
   return JSON.parse(localStorage.getItem(key)||'[]')
 }
 
-// highlight matching text
 function highlight(text, term){
   if(!term) return text
   const regex = new RegExp(`(${term})`, 'gi')
@@ -58,7 +57,8 @@ function render(filter=''){
   const list = document.getElementById('list')
   list.innerHTML = ''
   const drinks = getDrinks()
-    .filter(d=>[d.name,d.recipe,d.method,d.glass,d.garnish,...d.flavour].some(f=>f.toLowerCase().includes(q)))
+    .filter(d=>[d.name,d.recipe,d.method,d.glass,d.garnish,d.ice,...d.flavour,...(d.ingredients||[])]
+      .some(f=>f.toLowerCase().includes(q)))
     .reverse()
   if(!drinks.length){ list.innerHTML='<p style="color:var(--muted)">no drinks found</p>'; return }
   drinks.forEach(d=>{
@@ -67,20 +67,22 @@ function render(filter=''){
     div.innerHTML=`
       <div class="meta">${new Date(d.date).toLocaleDateString()}</div>
       <h2>${highlight(d.name,q)}</h2>
-      <div class="meta">${highlight(d.method,q)} · ${highlight(d.glass,q)} · ${highlight(d.garnish,q)}</div>
-      <strong>recipe</strong><br>${highlight(d.recipe,q)}
+      <div class="meta">${highlight(d.method,q)} · ${highlight(d.glass,q)} · ${highlight(d.garnish,q)} · ${highlight(d.ice,q)}</div>
+      <strong>ingredients</strong><br>${highlight(d.ingredients.join(', '),q)}
+      <br><strong>recipe</strong><br>${highlight(d.recipe,q)}
       <div class="tags">
         ${d.flavour.map(f=>`<span class="tag" onclick="setFilter('${f}')">${highlight(f,q)}</span>`).join('')}
         <span class="tag" onclick="setFilter('${d.method}')">${d.method}</span>
         <span class="tag" onclick="setFilter('${d.glass}')">${d.glass}</span>
         ${d.garnish?`<span class="tag" onclick="setFilter('${d.garnish}')">${d.garnish}</span>`:''}
+        <span class="tag" onclick="setFilter('${d.ice}')">${d.ice}</span>
+        ${d.ingredients.map(i=>`<span class="tag" onclick="setFilter('${i}')">${i}</span>`).join('')}
       </div>
     `
     list.appendChild(div)
   })
 }
 
-// set filter from tag click
 function setFilter(term){
   document.getElementById('search').value=term
   render(term)

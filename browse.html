@@ -11,51 +11,22 @@
   --border: #262626;
   --text: #f5f5f5;
   --muted: #a1a1a1;
+  --highlight: #ffcc00;
 }
 * { box-sizing: border-box }
-body {
-  margin: 0;
-  padding: 24px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
-}
-nav {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-nav a { color: var(--muted); text-decoration: none; font-size: 14px }
-nav a:hover { color: var(--text) }
-h1 { font-size: 22px; font-weight: 500; margin-bottom: 16px }
-h2 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
-input { 
-  width: 100%; 
-  margin-bottom: 24px; 
-  padding: 10px; 
-  background: var(--panel); 
-  color: var(--text); 
-  border: 1px solid var(--border); 
-  font-size: 14px;
-}
-.card {
-  border: 1px solid var(--border);
-  background: var(--panel);
-  padding: 16px;
-  margin-bottom: 16px;
-  border-radius: 6px;
-}
-.meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.tag {
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-}
-.tag:hover { color: var(--text) }
-@media (min-width: 700px) { body { max-width: 720px; margin: auto } }
+body { margin:0;padding:24px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif }
+nav { display:flex; gap:16px; margin-bottom:32px }
+nav a { color:var(--muted); text-decoration:none; font-size:14px }
+nav a:hover { color:var(--text) }
+h1{font-size:22px;font-weight:500;margin-bottom:16px}
+input { width:100%; margin-bottom:24px; padding:10px; background:var(--panel); color:var(--text); border:1px solid var(--border); font-size:14px }
+.card { border:1px solid var(--border); background:var(--panel); padding:16px; margin-bottom:16px; border-radius:6px }
+h2{margin:0 0 8px;font-size:16px;font-weight:500}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{border:1px solid var(--border);padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer}
+.tag:hover{color:var(--text)}
+mark{background:var(--highlight);color:#000;font-weight:600}
 </style>
 </head>
 <body>
@@ -72,53 +43,50 @@ input {
 const key = 'cocktails'
 
 function getDrinks() {
-  return JSON.parse(localStorage.getItem(key) || '[]')
+  return JSON.parse(localStorage.getItem(key)||'[]')
 }
 
-function render(filter = '') {
+// highlight matching text
+function highlight(text, term){
+  if(!term) return text
+  const regex = new RegExp(`(${term})`, 'gi')
+  return text.replace(regex, '<mark>$1</mark>')
+}
+
+function render(filter=''){
   const q = filter.toLowerCase()
   const list = document.getElementById('list')
   list.innerHTML = ''
-
   const drinks = getDrinks()
-    .filter(d => 
-      [
-        d.name,
-        d.method,
-        d.glass,
-        d.garnish,
-        d.recipe,
-        ...d.flavour
-      ].some(f => f.toLowerCase().includes(q))
-    )
+    .filter(d=>[d.name,d.recipe,d.method,d.glass,d.garnish,...d.flavour].some(f=>f.toLowerCase().includes(q)))
     .reverse()
-
-  if (!drinks.length) {
-    list.innerHTML = '<p style="color:var(--muted)">no drinks found</p>'
-    return
-  }
-
-  drinks.forEach(d => {
+  if(!drinks.length){ list.innerHTML='<p style="color:var(--muted)">no drinks found</p>'; return }
+  drinks.forEach(d=>{
     const div = document.createElement('div')
-    div.className = 'card'
-    div.innerHTML = `
+    div.className='card'
+    div.innerHTML=`
       <div class="meta">${new Date(d.date).toLocaleDateString()}</div>
-      <h2>${d.name}</h2>
-      <div class="meta">${d.method} · ${d.glass} · ${d.garnish}</div>
-      <strong>recipe</strong><br>${d.recipe}
+      <h2>${highlight(d.name,q)}</h2>
+      <div class="meta">${highlight(d.method,q)} · ${highlight(d.glass,q)} · ${highlight(d.garnish,q)}</div>
+      <strong>recipe</strong><br>${highlight(d.recipe,q)}
       <div class="tags">
-        ${d.flavour.map(f => `<span class="tag" onclick="render('${f}')">${f}</span>`).join('')}
+        ${d.flavour.map(f=>`<span class="tag" onclick="setFilter('${f}')">${highlight(f,q)}</span>`).join('')}
+        <span class="tag" onclick="setFilter('${d.method}')">${d.method}</span>
+        <span class="tag" onclick="setFilter('${d.glass}')">${d.glass}</span>
+        ${d.garnish?`<span class="tag" onclick="setFilter('${d.garnish}')">${d.garnish}</span>`:''}
       </div>
     `
     list.appendChild(div)
   })
 }
 
-document.getElementById('search').addEventListener('input', e => {
-  render(e.target.value)
-})
+// set filter from tag click
+function setFilter(term){
+  document.getElementById('search').value=term
+  render(term)
+}
 
-// initial render
+document.getElementById('search').addEventListener('input', e=>render(e.target.value))
 render()
 </script>
 </body>

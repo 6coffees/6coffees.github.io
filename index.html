@@ -58,6 +58,9 @@ button:hover { opacity: 0.9 }
 <label>recipe</label>
 <textarea id="recipe"></textarea>
 
+<label>ingredients (comma separated)</label>
+<input id="ingredients" placeholder="e.g. gin, lime, sugar" />
+
 <label>method</label>
 <select id="method">
   <option value="shaken">shaken</option>
@@ -72,6 +75,15 @@ button:hover { opacity: 0.9 }
 
 <label>garnish</label>
 <input id="garnish" />
+
+<label>ice type</label>
+<select id="ice">
+  <option value="none">none</option>
+  <option value="cube">cube</option>
+  <option value="crushed">crushed</option>
+  <option value="spear">spear</option>
+  <option value="sphere">sphere</option>
+</select>
 
 <label>flavour profile (comma separated)</label>
 <input id="flavour" placeholder="bitter, citrus, herbal" />
@@ -92,13 +104,14 @@ function saveDrink() {
   const drink = {
     name: document.getElementById('name').value.trim(),
     recipe: document.getElementById('recipe').value.trim(),
+    ingredients: document.getElementById('ingredients').value
+      .split(',').map(f=>f.trim().toLowerCase()).filter(Boolean),
     method: document.getElementById('method').value,
     glass: document.getElementById('glass').value.trim(),
     garnish: document.getElementById('garnish').value.trim(),
+    ice: document.getElementById('ice').value,
     flavour: document.getElementById('flavour').value
-      .split(',')
-      .map(f => f.trim().toLowerCase())
-      .filter(Boolean),
+      .split(',').map(f => f.trim().toLowerCase()).filter(Boolean),
     date: new Date().toISOString()
   }
 
@@ -111,9 +124,11 @@ function saveDrink() {
 
   document.getElementById('name').value = ''
   document.getElementById('recipe').value = ''
+  document.getElementById('ingredients').value = ''
   document.getElementById('method').value = 'shaken'
   document.getElementById('glass').value = ''
   document.getElementById('garnish').value = ''
+  document.getElementById('ice').value = 'none'
   document.getElementById('flavour').value = ''
   renderPreview()
 }
@@ -124,7 +139,7 @@ function renderPreview() {
   getDrinks().slice(-5).reverse().forEach(d => {
     const div = document.createElement('div')
     div.className = 'card'
-    div.innerHTML = `<strong>${d.name}</strong> · ${d.method} · ${d.glass}`
+    div.innerHTML = `<strong>${d.name}</strong> · ${d.method} · ${d.glass} · ${d.ice}`
     preview.appendChild(div)
   })
 }

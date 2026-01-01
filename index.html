@@ -1,158 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>add cocktail</title>
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --panel: #141414;
-      --border: #262626;
-      --text: #f5f5f5;
-      --muted: #a1a1a1;
-    }
-
-    * { box-sizing: border-box }
-
-    body {
-      margin: 0;
-      padding: 24px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
-      line-height: 1.5;
-    }
-
-    nav {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    nav a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-      letter-spacing: 0.04em;
-    }
-
-    nav a:hover { color: var(--text) }
-
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      margin: 0 0 24px;
-      letter-spacing: 0.02em;
-    }
-
-    label {
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      margin-top: 6px;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: var(--panel);
-      color: var(--text);
-      border: 1px solid var(--border);
-      font-size: 14px;
-    }
-
-    textarea { resize: vertical }
-
-    button {
-      background: var(--text);
-      color: var(--bg);
-      border: none;
-      padding: 12px 18px;
-      font-size: 13px;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-    }
-
-    button:hover { opacity: 0.9 }
-
-    @media (min-width: 700px) {
-      body { max-width: 720px; margin: auto }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>add cocktail</title>
+<style>
+:root {
+  --bg: #0b0b0b;
+  --panel: #141414;
+  --border: #262626;
+  --text: #f5f5f5;
+  --muted: #a1a1a1;
+  --highlight: #ffcc00;
+}
+* { box-sizing: border-box }
+body {
+  margin: 0; padding: 24px;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+}
+nav { display: flex; gap: 16px; margin-bottom: 32px; }
+nav a { color: var(--muted); text-decoration: none; font-size: 14px }
+nav a:hover { color: var(--text) }
+h1 { font-size: 22px; font-weight: 500; margin-bottom: 24px }
+label { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase }
+input, textarea, select {
+  width: 100%; margin-top:6px; margin-bottom:20px;
+  padding: 10px; background: var(--panel); color: var(--text); border:1px solid var(--border);
+  font-size: 14px
+}
+textarea { resize: vertical }
+button {
+  background: var(--text); color: var(--bg); border: none; padding: 12px 18px;
+  font-size: 13px; letter-spacing: 0.05em; cursor: pointer;
+}
+button:hover { opacity: 0.9 }
+.card {
+  border: 1px solid var(--border); background: var(--panel); padding: 12px; margin-bottom: 12px; border-radius:6px;
+}
+.meta { font-size:12px; color: var(--muted); margin-bottom:4px }
+.tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px }
+.tag { border:1px solid var(--border); padding:2px 6px; font-size:11px; color:var(--muted); cursor:pointer }
+.tag:hover { color: var(--text) }
+</style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">add</a>
-    <a href="browse.html">browse</a>
-  </nav>
+<nav>
+  <a href="index.html">add</a>
+  <a href="browse.html">browse</a>
+</nav>
 
-  <h1>add cocktail</h1>
+<h1>add cocktail</h1>
 
-  <label>name</label>
-  <input id="name" />
+<label>name</label>
+<input id="name" />
 
-  <label>recipe</label>
-  <textarea id="recipe"></textarea>
+<label>recipe</label>
+<textarea id="recipe"></textarea>
 
-  <label>method</label>
-  <select id="method">
-    <option value="shaken">shaken</option>
-    <option value="stirred">stirred</option>
-    <option value="built">built</option>
-    <option value="blended">blended</option>
-    <option value="carbonated">carbonated</option>
-  </select>
+<label>method</label>
+<select id="method">
+  <option value="shaken">shaken</option>
+  <option value="stirred">stirred</option>
+  <option value="built">built</option>
+  <option value="blended">blended</option>
+  <option value="carbonated">carbonated</option>
+</select>
 
-  <label>glassware</label>
-  <input id="glass" />
+<label>glassware</label>
+<input id="glass" />
 
-  <label>garnish</label>
-  <input id="garnish" />
+<label>garnish</label>
+<input id="garnish" />
 
-  <label>flavour profile (comma separated)</label>
-  <input id="flavour" placeholder="bitter, citrus, herbal" />
+<label>flavour profile (comma separated)</label>
+<input id="flavour" placeholder="bitter, citrus, herbal" />
 
-  <button onclick="saveDrink()">save cocktail</button>
+<button onclick="saveDrink()">save cocktail</button>
 
-  <script>
-    const key = 'cocktails'
+<h2>existing cocktails preview</h2>
+<div id="preview"></div>
 
-    function getDrinks() {
-      return JSON.parse(localStorage.getItem(key) || '[]')
-    }
+<script>
+const key = 'cocktails'
 
-    function saveDrink() {
-      const drink = {
-        name: document.getElementById('name').value.trim(),
-        recipe: document.getElementById('recipe').value.trim(),
-        method: document.getElementById('method').value,
-        glass: document.getElementById('glass').value.trim(),
-        garnish: document.getElementById('garnish').value.trim(),
-        flavour: document.getElementById('flavour').value
-          .split(',')
-          .map(f => f.trim().toLowerCase())
-          .filter(Boolean),
-        date: new Date().toISOString()
-      }
+function getDrinks() {
+  return JSON.parse(localStorage.getItem(key) || '[]')
+}
 
-      if (!drink.name) return alert('name required')
+function saveDrink() {
+  const drink = {
+    name: document.getElementById('name').value.trim(),
+    recipe: document.getElementById('recipe').value.trim(),
+    method: document.getElementById('method').value,
+    glass: document.getElementById('glass').value.trim(),
+    garnish: document.getElementById('garnish').value.trim(),
+    flavour: document.getElementById('flavour').value
+      .split(',')
+      .map(f => f.trim().toLowerCase())
+      .filter(Boolean),
+    date: new Date().toISOString()
+  }
 
-      const drinks = getDrinks()
-      drinks.push(drink)
-      localStorage.setItem(key, JSON.stringify(drinks))
+  if (!drink.name) return alert('name required')
 
-      document.getElementById('name').value = ''
-      document.getElementById('recipe').value = ''
-      document.getElementById('method').value = 'shaken'
-      document.getElementById('glass').value = ''
-      document.getElementById('garnish').value = ''
-      document.getElementById('flavour').value = ''
+  const drinks = getDrinks()
+  drinks.push(drink)
+  localStorage.setItem(key, JSON.stringify(drinks))
+  alert('cocktail saved! go browse')
 
-      alert('saved')
-    }
-  </script>
+  document.getElementById('name').value = ''
+  document.getElementById('recipe').value = ''
+  document.getElementById('method').value = 'shaken'
+  document.getElementById('glass').value = ''
+  document.getElementById('garnish').value = ''
+  document.getElementById('flavour').value = ''
+  renderPreview()
+}
+
+function renderPreview() {
+  const preview = document.getElementById('preview')
+  preview.innerHTML = ''
+  getDrinks().slice(-5).reverse().forEach(d => {
+    const div = document.createElement('div')
+    div.className = 'card'
+    div.innerHTML = `<strong>${d.name}</strong> · ${d.method} · ${d.glass}`
+    preview.appendChild(div)
+  })
+}
+
+renderPreview()
+</script>
 </body>
 </html>

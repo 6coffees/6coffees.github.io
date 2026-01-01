@@ -6,57 +6,44 @@
 <title>add cocktail</title>
 <style>
 :root {
-  --bg: #0b0b0b;
-  --panel: #141414;
-  --border: #262626;
-  --text: #f5f5f5;
-  --muted: #a1a1a1;
-  --highlight: #ffcc00;
+  --bg:#0b0b0b; --panel:#141414; --border:#262626; --text:#f5f5f5; --muted:#a1a1a1; --highlight:#ffcc00;
 }
-* { box-sizing: border-box }
-body { margin:0; padding:24px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif }
-nav { display:flex; gap:16px; margin-bottom:32px }
-nav a { color:var(--muted); text-decoration:none; font-size:14px }
-nav a:hover { color:var(--text) }
-h1{font-size:22px;font-weight:500;margin-bottom:24px}
-label{font-size:12px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
-input, textarea, select { width:100%; margin-top:6px; margin-bottom:20px; padding:10px; background:var(--panel); color:var(--text); border:1px solid var(--border); font-size:14px }
-textarea { resize: vertical }
-button { background:var(--text); color:var(--bg); border:none; padding:12px 18px; font-size:13px; letter-spacing:0.05em; cursor:pointer }
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
+nav{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;font-size:14px}
+nav a:hover{color:var(--text)}
+h1{font-size:22px;margin-bottom:16px}
+label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;display:block}
+input,textarea,select,button{width:100%;padding:10px;margin-top:6px;margin-bottom:12px;background:var(--panel);color:var(--text);border:1px solid var(--border);font-size:14px;border-radius:4px}
+textarea{resize:vertical}
+button{cursor:pointer;border:none;background:var(--text);color:var(--bg);font-weight:600}
 button:hover{opacity:0.9}
-.card { border:1px solid var(--border); background:var(--panel); padding:12px; margin-bottom:12px; border-radius:6px }
-.meta{font-size:12px;color:var(--muted);margin-bottom:4px}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.tag{border:1px solid var(--border);padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer}
-.tag:hover{color:var(--text)}
+.card{border:1px solid var(--border);background:var(--panel);padding:12px;margin-bottom:12px;border-radius:6px}
+.preview{cursor:pointer}
 </style>
 </head>
 <body>
 <nav>
-  <a href="index.html">add</a>
-  <a href="browse.html">browse</a>
+<a href="index.html">add</a>
+<a href="browse.html">browse</a>
 </nav>
 
 <h1>add cocktail</h1>
 
-<label>name</label>
-<input id="name" />
+<label>name</label><input id="name"/>
 
-<label>recipe</label>
-<textarea id="recipe"></textarea>
+<label>recipe</label><textarea id="recipe"></textarea>
 
 <label>ingredients (comma separated)</label>
 <input id="ingredients" placeholder="e.g. gin, lime, sugar" list="ingredients-suggestions"/>
 <datalist id="ingredients-suggestions"></datalist>
 
 <label>method</label>
-<select id="method">
-  <option value="shaken">shaken</option>
-  <option value="stirred">stirred</option>
-  <option value="built">built</option>
-  <option value="blended">blended</option>
-  <option value="carbonated">carbonated</option>
-</select>
+<input id="method" list="method-suggestions"/>
+<datalist id="method-suggestions">
+  <option value="shaken"><option value="stirred"><option value="built"><option value="blended"><option value="carbonated">
+</datalist>
 
 <label>glassware</label>
 <input id="glass" list="glass-suggestions"/>
@@ -86,12 +73,11 @@ button:hover{opacity:0.9}
   <option value="liqueur">liqueur</option>
 </select>
 
-<label>favourite?</label>
-<input type="checkbox" id="favourite" />
+<label>favourite?</label><input type="checkbox" id="favourite"/>
 
 <button onclick="saveDrink()">save cocktail</button>
 
-<h2>existing cocktails preview</h2>
+<h2>recent cocktails (tap to expand)</h2>
 <div id="preview"></div>
 
 <script>
@@ -101,44 +87,37 @@ function getDrinks(){return JSON.parse(localStorage.getItem(key)||'[]')}
 
 function updateSuggestions(){
   const drinks=getDrinks()
-  const ingredientsSet=new Set()
-  const flavoursSet=new Set()
-  const glassSet=new Set()
+  const ing=new Set(),flav=new Set(),glass=new Set()
   drinks.forEach(d=>{
-    d.ingredients.forEach(i=>ingredientsSet.add(i))
-    d.flavour.forEach(f=>flavoursSet.add(f))
-    if(d.glass) glassSet.add(d.glass)
+    d.ingredients.forEach(i=>ing.add(i))
+    d.flavour.forEach(f=>flav.add(f))
+    if(d.glass) glass.add(d.glass)
   })
-  document.getElementById('ingredients-suggestions').innerHTML=Array.from(ingredientsSet).map(i=>`<option value="${i}">`).join('')
-  document.getElementById('flavour-suggestions').innerHTML=Array.from(flavoursSet).map(f=>`<option value="${f}">`).join('')
-  document.getElementById('glass-suggestions').innerHTML=Array.from(glassSet).map(g=>`<option value="${g}">`).join('')
+  document.getElementById('ingredients-suggestions').innerHTML=Array.from(ing).map(i=>`<option value="${i}">`).join('')
+  document.getElementById('flavour-suggestions').innerHTML=Array.from(flav).map(f=>`<option value="${f}">`).join('')
+  document.getElementById('glass-suggestions').innerHTML=Array.from(glass).map(g=>`<option value="${g}">`).join('')
 }
 
 function saveDrink(){
   const drink={
-    name: document.getElementById('name').value.trim(),
-    recipe: document.getElementById('recipe').value.trim(),
-    ingredients: document.getElementById('ingredients').value.split(',').map(f=>f.trim().toLowerCase()).filter(Boolean),
-    method: document.getElementById('method').value,
-    glass: document.getElementById('glass').value.trim(),
-    ice: document.getElementById('ice').value,
-    flavour: document.getElementById('flavour').value.split(',').map(f=>f.trim().toLowerCase()).filter(Boolean),
-    alcohol: document.getElementById('alcohol').value,
-    favourite: document.getElementById('favourite').checked,
-    date: new Date().toISOString()
+    name:document.getElementById('name').value.trim(),
+    recipe:document.getElementById('recipe').value.trim(),
+    ingredients:document.getElementById('ingredients').value.split(',').map(i=>i.trim().toLowerCase()).filter(Boolean),
+    method:document.getElementById('method').value,
+    glass:document.getElementById('glass').value.trim(),
+    ice:document.getElementById('ice').value,
+    flavour:document.getElementById('flavour').value.split(',').map(f=>f.trim().toLowerCase()).filter(Boolean),
+    alcohol:document.getElementById('alcohol').value,
+    favourite:document.getElementById('favourite').checked,
+    date:new Date().toISOString()
   }
   if(!drink.name) return alert('name required')
   const drinks=getDrinks()
   drinks.push(drink)
   localStorage.setItem(key,JSON.stringify(drinks))
   alert('cocktail saved!')
-  document.getElementById('name').value=''
-  document.getElementById('recipe').value=''
-  document.getElementById('ingredients').value=''
-  document.getElementById('method').value='shaken'
-  document.getElementById('glass').value=''
+  ['name','recipe','ingredients','method','glass','flavour'].forEach(id=>document.getElementById(id).value='')
   document.getElementById('ice').value='none'
-  document.getElementById('flavour').value=''
   document.getElementById('alcohol').value='none'
   document.getElementById('favourite').checked=false
   renderPreview()
@@ -146,13 +125,14 @@ function saveDrink(){
 }
 
 function renderPreview(){
-  const preview=document.getElementById('preview')
-  preview.innerHTML=''
+  const container=document.getElementById('preview')
+  container.innerHTML=''
   getDrinks().slice(-5).reverse().forEach(d=>{
     const div=document.createElement('div')
-    div.className='card'
-    div.innerHTML=`<strong>${d.name}</strong> · ${d.method} · ${d.glass} · ${d.ice} · ${d.alcohol}${d.favourite?' ⭐':''}`
-    preview.appendChild(div)
+    div.className='card preview'
+    div.innerHTML=`<strong>${d.name}</strong> · ${d.method} · ${d.glass} · ${d.ice} · ${d.alcohol}${d.favourite?' ⭐':''}<div style="display:none;margin-top:6px">${d.ingredients.join(', ')}<br>${d.recipe}</div>`
+    div.addEventListener('click',()=>{div.children[1].style.display=div.children[1].style.display==='none'?'block':'none'})
+    container.appendChild(div)
   })
 }
 
